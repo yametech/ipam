@@ -1,7 +1,9 @@
 # ipam
 
 ```
-kubectl apply -f deploy/
+kubectl apply -f deploy/yamecloud.io_ip.yaml
+kubectl apply -f deploy/rbac.yaml
+kubectl apply -f deploy/global-ipam.yaml
 ```
 
 ## on linux system
