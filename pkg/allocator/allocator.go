@@ -23,6 +23,8 @@ import (
 	"github.com/containernetworking/plugins/pkg/ip"
 )
 
+var HasBeenAcquired = fmt.Errorf("IP has already been acquired")
+
 type Store interface {
 	LastReservedIP(ctx context.Context) (net.IP, error)
 	Reserve(ctx context.Context, namespace, pod string, requestedIp string) error
@@ -74,6 +76,9 @@ func (a *IPAllocator) Allocate(namespace, pod string) (*typesVer.IPConfig, error
 
 		err := a.store.Reserve(ctx, namespace, pod, reservedIP.String())
 		if err != nil {
+			if err == HasBeenAcquired {
+				continue
+			}
 			return nil, err
 		}
 		break

@@ -7,6 +7,7 @@ import (
 
 	"github.com/yametech/global-ipam/pkg/allocator"
 	v1 "github.com/yametech/global-ipam/pkg/apis/yamecloud/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,7 +25,7 @@ func (s Server) LastReservedIP(ctx context.Context) (net.IP, error) {
 		FromUnstructured(ipList.UnstructuredContent(), runtimeIpList); err != nil {
 		return nil, err
 	}
-	
+
 	return net.ParseIP(runtimeIpList.Reuse()), nil
 }
 
@@ -52,6 +53,9 @@ func (s Server) Reserve(ctx context.Context, namespace, pod string, requestedIp 
 	}
 	_, err = s.Interface.Resource(IP).Create(ctx, ip, metav1.CreateOptions{})
 	if err != nil {
+		if errors.IsAlreadyExists(err) {
+			return allocator.HasBeenAcquired
+		}
 		return err
 	}
 
