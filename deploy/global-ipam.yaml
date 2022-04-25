@@ -1,0 +1,68 @@
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: global-ipam
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: global-ipam
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: global-ipam
+        component: network
+        type: infra
+    spec:
+      volumes:
+        - name: cni-conf
+          hostPath:
+            path: /etc/cni/net.d
+            type: ''
+        - name: cni-bin
+          hostPath:
+            path: /opt/cni/bin
+            type: ''
+        - name: host-ns
+          hostPath:
+            path: /var/run/netns
+            type: ''
+        - name: unix-sock
+          hostPath:
+            path: /var/run/
+            type: ''
+      containers:
+        - name: cni-server
+          image: 'yametech/global-ipam:0.3.0'
+          env:
+            - name: IN_CLUSTER
+              value: 'true'
+          command:
+          - /cni.sh
+          volumeMounts:
+            - name: cni-conf
+              mountPath: /etc/cni/net.d
+            - name: cni-bin
+              mountPath: /opt/cni/bin
+            - name: unix-sock
+              mountPath: /var/run/
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+            runAsUser: 0
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: global-ipam
+      serviceAccount: global-ipam
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+      priorityClassName: system-cluster-critical
+  updateStrategy:
+    type: OnDelete
