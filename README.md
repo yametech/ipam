@@ -34,8 +34,8 @@ cnitool check <net> <netns>
 cnitool del   <net> <netns>
 
 
-git clone https://github.com/yametech/global-ipam.git
-cd global-ipam
+git clone https://github.com/yametech/ipam.git
+cd ipam
 rm -rf /opt/cni/bin/global-ipam && go build -o /opt/cni/bin/global-ipam cmd/cni/main.go
 ```
 
